@@ -29,7 +29,7 @@ public class SalesReport {
     static int failedShops = 0;  // tiendas que han fallado o no han respondido a tiempo (fase 3)
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        report(false);
+        report(true);
     }
 
     /**
@@ -48,9 +48,17 @@ public class SalesReport {
 
         long start = System.currentTimeMillis();
 
+        List<Process> children = new ArrayList<>();
         for (int shop = 1; shop <= SHOPS; shop++) {
             Process child = launch(shop);
-            collect(child, shop);
+            if (allAtOnce) {
+                children.add(child);
+            } else {
+                collect(child, shop);
+            }
+        }
+        for (int i = 0; i < children.size(); i++) {
+            collect(children.get(i), i + 1);
         }
 
         long time = System.currentTimeMillis() - start;
