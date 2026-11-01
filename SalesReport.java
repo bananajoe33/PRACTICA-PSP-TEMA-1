@@ -21,18 +21,15 @@ public class SalesReport {
 
     static final int SHOPS = 8;     // número de tiendas; en la fase 3, probad con 9
     static final int TIMEOUT = 30;  // segundos de espera máxima por hijo; en la fase 3, probad con 0
-    static final Locale ES = Locale.of("es", "ES");  // para escribir los números con formato español
+    static final Locale ES = Locale.of("es", "ES");
+    // para escribir los números con formato español
 
     static long totalUnits = 0;  // unidades vendidas en todas las tiendas
     static long totalCents = 0;  // importe de todas las tiendas, en céntimos
     static int failedShops = 0;  // tiendas que han fallado o no han respondido a tiempo (fase 3)
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // TODO fase 1: lanzar un ShopSummary para la tienda 1 con ProcessBuilder y javaCommand(),
-        //      heredando su entrada y su salida (inheritIO()), y escribir su PID y su código de salida.
-        // TODO fase 2: sustituir lo anterior por el informe uno a uno: report(false).
-        // TODO fase 5: hacer el informe uno a uno y después todos a la vez, y escribir cuántas
-        //      veces más rápido va el segundo.
+        report(false);
     }
 
     /**
@@ -45,9 +42,25 @@ public class SalesReport {
      * @return lo que ha tardado el informe, en milisegundos
      */
     static long report(boolean allAtOnce) throws IOException, InterruptedException {
-        // TODO fases 2 y 5
-        return 0;
+        totalUnits = 0;
+        totalCents = 0;
+        failedShops = 0;
+
+        long start = System.currentTimeMillis();
+
+        for (int shop = 1; shop <= SHOPS; shop++) {
+            Process child = launch(shop);
+            collect(child, shop);
+        }
+
+        long time = System.currentTimeMillis() - start;
+
+        System.out.printf(ES, "TOTAL: %,d unidades, %,.2f €%n", totalUnits, totalCents / 100.0);
+        System.out.println("Tiendas con problemas: " + failedShops);
+        System.out.println("Tiempo: " + time + " ms");
+        return time;
     }
+
 
     /**
      * Lanza un ShopSummary para la tienda indicada, con javaCommand(): le pasa la tienda por
@@ -57,9 +70,11 @@ public class SalesReport {
      * @return el proceso hijo, ya lanzado
      */
     static Process launch(int shop) throws IOException {
-        // TODO fase 2
-        return null;
+        ProcessBuilder pb = new ProcessBuilder(javaCommand("ShopSummary", String.valueOf(shop)));
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+        return pb.start();
     }
+
 
     /**
      * Recoge el resultado de un hijo y lo suma a los totales.
@@ -74,7 +89,33 @@ public class SalesReport {
      * @param shop  número de la tienda de ese hijo
      */
     static void collect(Process child, int shop) throws IOException, InterruptedException {
-        // TODO fases 2 y 3
+        if (!child.waitFor(TIMEOUT, TimeUnit.SECONDS)) {
+            child.destroyForcibly();
+            child.waitFor();
+            System.out.println("Tienda " + shop + " (PID " + child.pid() + "): sin respuesta en "
+                    + TIMEOUT + " s; terminada");
+            failedShops++;
+            return;
+        }
+
+        int code = child.exitValue();
+        if (code != 0) {
+            System.out.println("Tienda " + shop + " (PID " + child.pid() + "): ha fallado con código " + code);
+            failedShops++;
+            return;
+        }
+
+        try (BufferedReader output = child.inputReader()) {
+            String[] result = output.readLine().split(";");
+            long units = Long.parseLong(result[0]);
+            long cents = Long.parseLong(result[1]);
+
+            System.out.printf(ES, "Tienda %d (PID %d): %,d unidades, %,.2f €%n",
+                    shop, child.pid(), units, cents / 100.0);
+
+            totalUnits += units;
+            totalCents += cents;
+        }
     }
 
     /**

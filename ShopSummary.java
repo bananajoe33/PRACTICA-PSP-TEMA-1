@@ -14,7 +14,7 @@ import java.util.Random;
 public class ShopSummary {
 
     static final int SHOPS = 8;
-    static final int SALES = 50_000_000;  // ventas que se simulan en cada tienda
+    static final int SALES = 50_000_000;  // ventas que se simulan en cada tiendan +
     static final int[] PRICES = {450, 105, 120, 899, 185, 260, 310, 65, 199, 225};  // céntimos
 
     public static void main(String[] args) {
