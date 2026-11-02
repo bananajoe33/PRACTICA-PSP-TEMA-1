@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class SalesReport {
 
     static final int SHOPS = 8;     // número de tiendas; en la fase 3, probad con 9
-    static final int TIMEOUT = 0;  // segundos de espera máxima por hijo; en la fase 3, probad con 0
+    static final int TIMEOUT = 30;  // segundos de espera máxima por hijo; en la fase 3, probad con 0
     static final Locale ES = Locale.of("es", "ES");
     // para escribir los números con formato español
 

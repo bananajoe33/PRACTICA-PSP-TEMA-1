@@ -67,3 +67,25 @@ En ambos casos la tubería sincroniza los procesos y todo va al ritmo del más l
 ## Depuración
 
 ![Captura de pantalla 2026-11-01 162302.png](../Captura%20de%20pantalla%202026-11-01%20162302.png)
+
+![Captura de pantalla 2026-11-02 153526.png](../Captura%20de%20pantalla%202026-11-02%20153526.png)
+
+![Captura de pantalla 2026-11-02 153629.png](../Captura%20de%20pantalla%202026-11-02%20153629.png)
+
+Se ha puesto un punto de interrupción en la línea 53 de `SalesReport`, justo antes de `Process child = launch(shop);`, y se ha ejecutado en modo depuración con `allAtOnce = true` (todos a la vez). El depurador se detiene en el padre, en `report:53`, llamado desde `main:32`.
+
+Lo que se comprueba con la captura:
+
+- **`allAtOnce = true`**: el padre ha entrado en la rama de todos a la vez, donde cada hijo se guarda en la lista `children` y no se espera a que termine antes de lanzar el siguiente.
+- **`children` con `size = 0` y `shop = 1`**: aún no se ha lanzado ningún hijo. Si se avanza paso a paso (*Step Over*), la lista crece (1, 2, ... 8) antes de que el padre empiece a esperar a ninguno. Eso confirma que los 8 hijos se lanzan antes de recoger sus resultados, y por eso el tiempo total es menor que uno a uno.
+- **`start`**: guarda la hora de inicio en milisegundos, con la que luego se calcula el tiempo del informe.
+
+Más adelante, con los hijos ya terminados, se puede evaluar `child.exitValue()` en la ventana *Evaluate expression* para ver el código de salida de cada tienda (0 si ha ido bien, 1 si ha fallado, como la tienda 9).
+
+### Error encontrado depurando
+
+Al cambiar el número de tiendas (`SHOPS = 9`), el informe mostraba una tienda con problemas. Se depuró para ver cuál era el error y se comprobó que la tienda 9 no existe: el hijo escribía "No existe la tienda 9: hay de la 1 a la 8" y terminaba con código 1. No era un fallo del padre, que detectó bien el código de salida distinto de 0 y lo contó como tienda con problemas, así que no hizo falta cambiar el código.
+
+También comprobamos el número de tiendas correcto para ver la ejecuión con código igual a 0.
+
+
