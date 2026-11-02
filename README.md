@@ -50,7 +50,7 @@ Porque solo pueden ejecutarse de verdad a la vez tantos procesos como núcleos t
 
 ## Caja en directo
 
-[Las trazas de los dos escenarios y qué demuestran: quién espera en cada uno y por qué.]
+Se lanzan CashRegister y Ledger unidos por una tubería y devuelven por consola un mensaje cuando escriben un ticket y cuando lo registran, En los 2 escenarios los cuales se lanzan con diferentes tiempos de espera de ejecución, en el primer escenario, se ve como se escribe un registro y se lee nada mas acabar, mientras que en el segundo, primero se leen todos los registros seguidos para luego leerlos todos. 
 
 ## Depuración
 
