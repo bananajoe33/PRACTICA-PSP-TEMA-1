@@ -9,7 +9,7 @@ Incluye además una caja: dos procesos unidos por una tubería, una caja (CashRe
 |---|---|
 | Adrián De Francisco  | SalesReport (Fases 1,2,3,5 lanzando todos a la vez y uno a uno) |
 | Farah Mouaouia Chaarou | CashRegister y Ledger (fase 4, productor y consumidor de la caja en directo) |
-| [Nombre y apellidos] | [...] |
+| [Carlos Hurtado Cortes] | [LiveCashRegister( fase 4, unir 2 procesos por una tubería y lanzar los 2 escenarios planteados] |
 
 ## Cómo se ejecuta
 
