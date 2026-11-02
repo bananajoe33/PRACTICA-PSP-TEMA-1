@@ -22,11 +22,13 @@ Incluye además una caja: dos procesos unidos por una tubería, una caja (CashRe
 
 | Clase | Papel | Entrada | Salida | Códigos de salida |
 |---|---|---|---|---|
-| [`SalesReport`] | [Padre / hijo; qué hace] | [Argumentos, entrada estándar...] | [Salida estándar, salida de error...] | [0: ...] |
+| `SalesReport` | Padre: lanza un ShopSummary por tienda, recoge sus resultados y escribe el informe | Ninguna | Estándar: una línea por tienda con su PID, el total, las tiendas con problemas y el tiempo. Error: la de los hijos (heredada) | 0: bien |
+| `ShopSummary` | Hijo: suma las ventas de una tienda | Argumento: número de tienda, de 1 a 8 | Estándar: unidades;céntimos. Error: el mensaje si algo va mal | 0: bien; 1: falta el argumento, no es un número o la tienda no existe |
+| `LiveCashRegister` | Padre: une CashRegister y Ledger con una tubería y ejecuta los dos escenarios | Ninguna | Estándar: el título de cada escenario y el total del Ledger (heredada). Error: las trazas de los dos hijos (heredada) | 0: bien |
 | `CashRegister` | Hijo, productor: emite tickets | Argumentos: número de tickets y pausa en ms | Estándar: un ticket por línea, número;céntimos. Error: hora de cada ticket | 0: bien; 1: argumentos que faltan o no son números |
 | `Ledger` | Hijo, consumidor: suma los tickets | Argumento: pausa en ms. Entrada estándar: los tickets | Estándar: número de tickets y total en euros. Error: hora de cada lectura | 0: bien; 1: argumento que falta o no es un número |
 
-- LiveCashRegister lanza CashRegister y Ledger con startPipeline(): la salida estándar de la caja es la entrada estándar del registro
+- SalesReport lanza 8 ShopSummary, les pasa la tienda por argumento y lee el resultado de cada uno por su salida estándar; los mensajes de error de los hijos salen en la consola del padre. LiveCashRegister lanza CashRegister y Ledger con startPipeline(): la salida estándar de la caja es la entrada estándar del registro, y espera a los dos.
 
 ## Pruebas realizadas
 
@@ -87,5 +89,3 @@ Más adelante, con los hijos ya terminados, se puede evaluar `child.exitValue()`
 Al cambiar el número de tiendas (`SHOPS = 9`), el informe mostraba una tienda con problemas. Se depuró para ver cuál era el error y se comprobó que la tienda 9 no existe: el hijo escribía "No existe la tienda 9: hay de la 1 a la 8" y terminaba con código 1. No era un fallo del padre, que detectó bien el código de salida distinto de 0 y lo contó como tienda con problemas, así que no hizo falta cambiar el código.
 
 También comprobamos el número de tiendas correcto para ver la ejecuión con código igual a 0.
-
-
