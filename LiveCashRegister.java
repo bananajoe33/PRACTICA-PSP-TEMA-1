@@ -20,9 +20,11 @@ public class LiveCashRegister {
         //      y del registro, 0.
         //      Escenario 2, caja rápida y registro lento: 10 tickets; pausa de la caja, 0, y del
         //      registro, 300 ms.
-       
+
+        System.out.println("Escenario 1: caja lenta y registro rápido");
         runScenario("5", "500", "0");
 
+        System.out.println("Escenario 2: caja rápida y registro lento");
         runScenario("10", "0", "300");
 
             
@@ -44,22 +46,22 @@ public class LiveCashRegister {
         // TODO fase 4
 
 
-            
-        ProcessBuilder caja = new ProcessBuilder(
-            javaCommand("CashRegister", tickets, registerPause));
-            
 
-        ProcessBuilder registro = new ProcessBuilder(            
-            javaCommand("Ledger", ledgerPause));
-        caja.redirectError(ProcessBuilder.Redirect.INHERIT);   
+        ProcessBuilder caja = new ProcessBuilder(javaCommand("CashRegister", tickets, registerPause));
+
+        ProcessBuilder registro = new ProcessBuilder(javaCommand("Ledger", ledgerPause));
+
+        caja.redirectError(ProcessBuilder.Redirect.INHERIT);
         registro.redirectError(ProcessBuilder.Redirect.INHERIT);
+        registro.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+
 
          List<Process> procesos = ProcessBuilder.startPipeline(List.of(caja, registro));
 
            for (Process p: procesos){
                p.waitFor();
             }
-        
+
     }
 
     /**

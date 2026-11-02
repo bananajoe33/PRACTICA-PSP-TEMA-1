@@ -32,12 +32,16 @@ Incluye además una caja: dos procesos unidos por una tubería, una caja (CashRe
 
 | Prueba | Resultado esperado | Resultado obtenido |
 |---|---|---|
-| Informe de las 8 tiendas (`SHOPS = 8`) | 8 líneas, una por tienda, con su PID. El total que da el enunciado. Tiendas con problemas: 0 | [...] |
+| Informe de las 8 tiendas (`SHOPS = 8`) | 8 líneas, una por tienda, con su PID. El total que da el enunciado. Tiendas con problemas: 0 | Se escriben las 8 líneas, una por tienda, cada una con su PID, sus unidades y su importe. Total: 1.200.014.349 unidades y 3.381.671.938,70 €. Tiendas con problemas: 0 |
 | Una tienda que no existe (`SHOPS = 9`) | La tienda 9 falla con un código de salida distinto de 0 y se escribe su error. Tiendas con problemas: 1. El total es el mismo que con 8 tiendas | El hijo escribe "No existe la tienda 9: hay de la 1 a la 8" y termina con código 1. El padre escribe "Tienda 9 (PID 12793): ha fallado con código 1". Tiendas con problemas: 1. Total: 1.200.014.349 unidades y 3.381.671.938,70 €, la suma de las tiendas 1 a 8. Tiempo: 1341 ms |
-| Un hijo que no responde a tiempo (`TIMEOUT = 0`) | Todos los hijos se terminan por tiempo. Tiendas con problemas: 8. Total: 0 | [...] |
-| Uno a uno frente a todos a la vez | El mismo total en los dos. El tiempo de todos a la vez es menor | [...] |
+| Un hijo que no responde a tiempo (`TIMEOUT = 0`) | Todos los hijos se terminan por tiempo. Tiendas con problemas: 8. Total: 0 | Las 8 tiendas escriben "sin respuesta en 0 s; terminada". Total: 0 unidades y 0,00 €. Tiendas con problemas: 8. Tiempo: 631 ms |
+| Uno a uno frente a todos a la vez | El mismo total en los dos. El tiempo de todos a la vez es menor | El total es el mismo en los dos modos: 1.200.014.349 unidades y 3.381.671.938,70 €. Uno a uno tarda 3921 ms y todos a la vez 1033 ms, unas 3,8 veces menos, porque los 8 hijos trabajan en paralelo en vez de esperarse unos a otros |
 
 ![Captura de pantalla 2026-11-01 161810.png](../Captura%20de%20pantalla%202026-11-01%20161810.png)
+
+![Captura de pantalla 2026-11-02 151454.png](../Captura%20de%20pantalla%202026-11-02%20151454.png)
+
+
 ## Tiempos
 
 ## Tiempos del informe
@@ -50,7 +54,15 @@ Porque solo pueden ejecutarse de verdad a la vez tantos procesos como núcleos t
 
 ## Caja en directo
 
-Se lanzan CashRegister y Ledger unidos por una tubería y devuelven por consola un mensaje cuando escriben un ticket y cuando lo registran, En los 2 escenarios los cuales se lanzan con diferentes tiempos de espera de ejecución, en el primer escenario, se ve como se escribe un registro y se lee nada mas acabar, mientras que en el segundo, primero se leen todos los registros seguidos para luego leerlos todos. 
+## Quién espera en cada escenario y por qué
+
+**Escenario 1 (caja lenta, registro rápido):** espera el registro, porque la tubería está vacía y se queda bloqueado en `readLine()` hasta que llega el siguiente ticket. El ritmo lo marca la caja, con un ticket cada 500 ms.
+
+**Escenario 2 (caja rápida, registro lento):** la caja escribe los 10 tickets en unos 30 ms porque caben en el búfer de la tubería, y el registro los lee a su ritmo (~300 ms cada uno), terminando unos 3 segundos después. Los tickets esperan en la tubería, y la caja solo se bloquearía si se llenara.
+
+En ambos casos la tubería sincroniza los procesos y todo va al ritmo del más lento. Que alguna traza salga desordenada por un milisegundo es normal: son dos procesos con salidas de error independientes.
+
+![Captura de pantalla 2026-11-02 150607.png](../Captura%20de%20pantalla%202026-11-02%20150607.png)
 
 ## Depuración
 
